@@ -1,0 +1,15 @@
+
+# Generated model and dataset files
+datasets/
+mlruns/
+feature_store/data/*.db
+feature_store/data/*.parquet
+artifacts/*.joblib
+artifacts/*.pt
+artifacts/*.pkl
+
+__pycache__/
+*.py[cod]
+mlflow.db
+mlruns/
+frontend/node_modules/

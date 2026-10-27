@@ -1,0 +1,20 @@
+{
+    "source_dataset": "C:\\Users\\DELL\\OneDrive\\Desktop\\financial-fraud-detection\\datasets\\creditcard.csv",
+    "output_dataset": "C:\\Users\\DELL\\OneDrive\\Desktop\\financial-fraud-detection\\artifacts\\features\\engineered_features.csv",
+    "rows": 284807,
+    "columns": 39,
+    "new_features": [
+        "transaction_id",
+        "event_timestamp",
+        "Amount_Log",
+        "Transaction_Time_Seconds",
+        "Time_Sin",
+        "Time_Cos",
+        "Amount_Rank_Percentile",
+        "Amount_ZScore"
+    ],
+    "fraudulent_transactions": 492,
+    "legitimate_transactions": 284315,
+    "missing_values": 0,
+    "timestamp_note": "Synthetic UTC timestamps based on the dataset's elapsed Time column; not actual transaction timestamps."
+}

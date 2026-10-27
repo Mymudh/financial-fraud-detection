@@ -1,0 +1,17 @@
+networkx
+numpy
+pandas
+scikit-learn
+xgboost
+joblib
+matplotlib
+seaborn
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+mlflow
+feast
+torch==2.6.0
+torch-geometric==2.6.1
+kafka-python

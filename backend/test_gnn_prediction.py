@@ -1,5 +1,5 @@
-import torch
 import pytest
+import torch
 
 from backend.gnn_predictor import predict_graph
 
@@ -51,3 +51,4 @@ def test_predict_graph_rejects_invalid_features():
             edge_index=None,
             transaction_node_index=0,
         )
+

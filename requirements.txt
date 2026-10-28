@@ -15,3 +15,5 @@ feast
 torch==2.6.0
 torch-geometric==2.6.1
 kafka-python
+pyarrow
+scikit-learn

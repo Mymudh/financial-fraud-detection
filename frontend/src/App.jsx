@@ -852,15 +852,6 @@ function App() {
                 )}
               </div>
 
-              <div className="form-note">
-                <AlertTriangle size={17} />
-                <span>
-                  For meaningful predictions, enter feature values prepared using
-                  the same feature definitions and preprocessing as the training
-                  dataset. Zero-filled values are only placeholders.
-                </span>
-              </div>
-
               {error && (
                 <div className="error-message" role="alert">
                   <AlertTriangle size={18} />

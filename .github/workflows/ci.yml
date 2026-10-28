@@ -1,3 +1,4 @@
+```yaml
 name: Fraud Detection CI
 
 on:
@@ -16,6 +17,7 @@ jobs:
   test:
     name: Run Automated Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout Repository
@@ -29,8 +31,27 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify Project Files
+        run: |
+          test -f feature_store/feature_store.yaml
+          test -f feature_store/feature_views.py
+          test -f feature_store/test_feature_store.py
+          test -f ml/build_feast_data.py
+
+      - name: Generate Feast Feature Data
+        run: python ml/build_feast_data.py
+
+      - name: Register Feast Features
+        working-directory: feature_store
+        run: feast apply
+
+      - name: Populate Feast Online Store
+        working-directory: feature_store
+        run: feast materialize-incremental "$(date -u +%Y-%m-%dT%H:%M:%S)"
 
       - name: Run Tests
         run: python -m pytest -v
+```

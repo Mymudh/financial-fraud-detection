@@ -16,7 +16,7 @@ jobs:
   test:
     name: Run Automated Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout Repository
@@ -26,6 +26,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Install Dependencies
         run: |
@@ -33,15 +35,24 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest
 
-      - name: Verify Project Files
+      - name: Verify Required Files
         run: |
+          test -f requirements.txt
+          test -f ml/build_feast_data.py
+          test -f ml/train_gnn.py
           test -f feature_store/feature_store.yaml
           test -f feature_store/feature_views.py
           test -f feature_store/test_feature_store.py
-          test -f ml/build_feast_data.py
+          test -f backend/gnn_predictor.py
+          test -f backend/test_gnn_prediction.py
+          test -f datasets/creditcard.csv
 
       - name: Generate Feast Feature Data
         run: python ml/build_feast_data.py
+
+      - name: Verify Generated Feature Data
+        run: |
+          python -c "from pathlib import Path; p=Path('feature_store/data/transaction_features.parquet'); assert p.exists(), f'Missing file: {p}'; print(f'Generated file: {p}, size: {p.stat().st_size} bytes')"
 
       - name: Register Feast Features
         working-directory: feature_store
@@ -49,7 +60,15 @@ jobs:
 
       - name: Populate Feast Online Store
         working-directory: feature_store
-        run: feast materialize-incremental "$(date -u +%Y-%m-%dT%H:%M:%S)"
+        run: |
+          feast materialize-incremental "$(date -u +%Y-%m-%dT%H:%M:%S)"
 
-      - name: Run Tests
+      - name: Train GNN Model
+        run: python ml/train_gnn.py
+
+      - name: Verify GNN Model
+        run: |
+          python -c "from pathlib import Path; p=Path('artifacts/fraud_gnn.pt'); assert p.is_file(), f'GNN model was not created: {p}'; print(f'GNN model created: {p}')"
+
+      - name: Run Automated Tests
         run: python -m pytest -v

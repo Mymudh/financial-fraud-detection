@@ -14,7 +14,11 @@ from backend.gnn_predictor import get_gnn_status, predict_graph
 from backend.kafka_producer import publish_transaction
 from backend.predictor import predict_transaction
 from backend.schemas import TransactionInput
-
+from backend.transactions_db import (
+    initialize_database,
+    save_transaction,
+    get_transaction_history,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = PROJECT_ROOT / "artifacts" / "fraud_model.joblib"
@@ -32,6 +36,9 @@ async def lifespan(app: FastAPI):
     app.state.model_loaded = False
 
     try:
+        initialize_database()
+        logger.info("Transaction database initialized.")
+
         if not MODEL_PATH.exists():
             logger.error("Fraud model not found: %s", MODEL_PATH)
         else:
@@ -40,8 +47,7 @@ async def lifespan(app: FastAPI):
             logger.info("Fraud detection model loaded successfully.")
 
     except Exception:
-        logger.exception("Failed to load fraud detection model.")
-        app.state.model_loaded = False
+        logger.exception("Application initialization failed.")
 
     yield
 
@@ -49,14 +55,14 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Financial Fraud Detection API",
     description=(
-        "Real-time financial fraud detection using XGBoost, "
+        "Real-time financial fraud detection using machine learning, "
         "feature retrieval, Kafka transaction streaming, "
-        "GNN inference, and analyst case management."
+        "GNN inference, SQLite transaction history, "
+        "and analyst case management."
     ),
-    version="1.5.0",
+    version="1.6.0",
     lifespan=lifespan,
 )
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,7 +77,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.include_router(case_management_router)
 
 
@@ -80,6 +85,7 @@ class PredictionResponse(BaseModel):
     label: str
     fraud_probability: float
     threshold: float
+    transaction_id: int | None = None
 
 
 class GNNPredictionRequest(BaseModel):
@@ -92,9 +98,10 @@ class GNNPredictionRequest(BaseModel):
 def home():
     return {
         "message": "Financial Fraud Detection API is running",
-        "version": "1.5.0",
+        "version": "1.6.0",
         "docs": "/docs",
         "health": "/health",
+        "transaction_history": "/transactions/history",
     }
 
 
@@ -160,13 +167,30 @@ def get_features(transaction_id: int):
 @app.post("/predict", response_model=PredictionResponse)
 def predict(data: TransactionInput):
     try:
-        result = predict_transaction(data.model_dump())
+        transaction_data = data.model_dump()
+        result = predict_transaction(transaction_data)
+
+        response_data = {
+            "prediction": int(result["prediction"]),
+            "label": str(result["label"]),
+            "fraud_probability": float(result["fraud_probability"]),
+            "threshold": float(result["threshold"]),
+        }
+
+        transaction_id = save_transaction(
+            transaction_data,
+            response_data,
+        )
+
+        logger.info(
+            "Transaction %s saved with prediction %s.",
+            transaction_id,
+            response_data["label"],
+        )
 
         return {
-            "prediction": result["prediction"],
-            "label": result["label"],
-            "fraud_probability": result["fraud_probability"],
-            "threshold": result["threshold"],
+            **response_data,
+            "transaction_id": transaction_id,
         }
 
     except ValueError as exc:
@@ -181,6 +205,31 @@ def predict(data: TransactionInput):
         raise HTTPException(
             status_code=500,
             detail="Prediction failed. Check the server logs.",
+        ) from exc
+
+
+@app.get("/transactions/history")
+def transaction_history(limit: int = 100):
+    if limit < 1 or limit > 500:
+        raise HTTPException(
+            status_code=422,
+            detail="Limit must be between 1 and 500.",
+        )
+
+    try:
+        records = get_transaction_history(limit)
+
+        return {
+            "count": len(records),
+            "transactions": records,
+        }
+
+    except Exception as exc:
+        logger.exception("Transaction history retrieval failed.")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to retrieve transaction history.",
         ) from exc
 
 
@@ -209,9 +258,22 @@ def predict_with_features(
 
         result = predict_transaction(transaction_data)
 
+        saved_result = {
+            "prediction": int(result["prediction"]),
+            "label": str(result["label"]),
+            "fraud_probability": float(result["fraud_probability"]),
+            "threshold": float(result["threshold"]),
+        }
+
+        saved_id = save_transaction(
+            transaction_data,
+            saved_result,
+        )
+
         return {
             "transaction_id": transaction_id,
-            "prediction": result,
+            "saved_transaction_id": saved_id,
+            **saved_result,
             "engineered_features": features,
         }
 
@@ -297,7 +359,9 @@ def gnn_predict(request: GNNPredictionRequest):
             )
 
         if not np.isfinite(x).all():
-            raise ValueError("Node features must contain finite numbers.")
+            raise ValueError(
+                "Node features must contain finite numbers."
+            )
 
         if not isinstance(node_index, int) or not 0 <= node_index < len(x):
             raise ValueError(
@@ -327,13 +391,11 @@ def gnn_predict(request: GNNPredictionRequest):
         else:
             edge_index = np.empty((2, 0), dtype=np.int64)
 
-        result = predict_graph(
+        return predict_graph(
             features=x,
             edge_index=edge_index,
             transaction_node_index=node_index,
         )
-
-        return result
 
     except (ValueError, TypeError, OverflowError) as exc:
         raise HTTPException(

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - clean-main
   pull_request:
     branches:
       - main
@@ -26,12 +27,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
-      - name: Install Dependencies
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install Project Dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Install Test Dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install pytest pyarrow scikit-learn
+          python -m pip install pytest httpx
+
+      - name: Verify Test Dependencies
+        run: |
+          python -c "import httpx, fastapi, starlette; print('httpx:', httpx.__version__); print('FastAPI:', fastapi.__version__); print('Starlette:', starlette.__version__)"
 
       - name: Generate Test Dataset
         run: |
@@ -53,7 +64,8 @@ jobs:
                   data[f"V{i}"] = rng.normal(size=rows)
 
               data["Amount"] = rng.exponential(
-                  scale=50.0, size=rows
+                  scale=50.0,
+                  size=rows
               )
 
               labels = np.zeros(rows, dtype=np.int64)
@@ -88,3 +100,4 @@ jobs:
 
       - name: Run Automated Tests
         run: python -m pytest -v
+

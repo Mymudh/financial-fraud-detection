@@ -1,0 +1,19 @@
+{
+    "accuracy": 0.9659597626487834,
+    "roc_auc": 0.9477992783354198,
+    "pr_auc": 0.2835671694876552,
+    "test_samples": 56962,
+    "epochs": 20,
+    "threshold": 0.5,
+    "features": [
+        "Time",
+        "V1",
+        "V2",
+        "V3",
+        "V4",
+        "V5",
+        "V6",
+        "V7"
+    ],
+    "note": "Experimental GraphSAGE baseline. Graph edges connect adjacent rows and do not represent verified transaction relationships. Evaluate graph construction before using this model for real fraud decisions."
+}

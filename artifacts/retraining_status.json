@@ -1,0 +1,10 @@
+{
+    "checked_at": "2026-10-26T15:50:17.791743+00:00",
+    "retraining_attempted": true,
+    "retraining_completed": true,
+    "reason": "Training completed and model metrics passed configured checks.",
+    "candidate_metrics": {
+        "roc_auc": 0.980753577457995,
+        "pr_auc_average_precision": 0.8741371357000024
+    }
+}

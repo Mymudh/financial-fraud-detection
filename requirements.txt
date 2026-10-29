@@ -18,3 +18,4 @@ kafka-python
 pyarrow
 scikit-learn
 psycopg[binary]
+httpx

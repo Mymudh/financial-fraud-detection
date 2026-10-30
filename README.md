@@ -199,22 +199,24 @@ financial-fraud-detection/
 This project uses the **Credit Card Fraud Detection** dataset.
 
 **Original Dataset:**
-[Credit Card Fraud Detection – Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
+
+https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
 
 **Alternative Dataset Mirror:**
-[Credit Card Fraud Detection – Zenodo](https://zenodo.org/records/7395559)
+
+https://zenodo.org/records/7395559
 
 ### Dataset Information
 
 | Attribute               | Details |
-| ----------------------- | ------- |
+| ----------------------- | ------: |
 | Total Transactions      | 284,807 |
 | Normal Transactions     | 284,315 |
-| Fraudulent Transactions | 492     |
-| Total Columns           | 31      |
+| Fraudulent Transactions |     492 |
+| Total Columns           |      31 |
 | Target Column           | `Class` |
-| Fraud Class             | 1       |
-| Normal Class            | 0       |
+| Fraud Class             |       1 |
+| Normal Class            |       0 |
 
 ### Dataset Included in This Repository
 
@@ -394,6 +396,60 @@ Because fraud datasets are highly imbalanced, precision, recall, and F1-score sh
 * Keep sensitive configuration in environment variables.
 * Exclude large datasets and generated artifacts from GitHub.
 * Use appropriate input validation before model prediction.
+
+## ✅ Final Verification Results
+
+The following results were verified during the final project checks.
+
+### Security Verification
+
+| Check                         | Result         |
+| ----------------------------- | -------------- |
+| Gitleaks history scan         | Passed         |
+| Git commits scanned           | 46             |
+| Data scanned                  | 21.67 MB       |
+| Gitleaks findings             | No leaks found |
+| GitHub Secret Scanning        | Enabled        |
+| Open secret-scanning alerts   | 0              |
+| Closed secret-scanning alerts | 0              |
+
+The Gitleaks scan completed successfully and reported no detected leaks. GitHub Secret Scanning also showed **0 open** and **0 closed** alerts at the time of verification.
+
+**Security configuration notes:**
+
+* Dependabot alerts are currently disabled.
+* Code scanning is not configured.
+* A clean Gitleaks scan and zero GitHub secret alerts do not replace ongoing security monitoring.
+
+### Automated Test Results
+
+* Automated test suite: **56 passed**.
+* Warnings: **3**.
+* Execution time: **14.38 seconds**.
+
+### Docker Verification
+
+* Docker image built successfully.
+* Backend container started successfully.
+* The container runs as the non-root user `appuser`.
+* The container health check confirmed that the API, model, and database were ready.
+
+### Kafka Integration Verification
+
+* Kafka producer successfully published a transaction event to the `fraud-transactions` topic.
+* Kafka consumer received and processed the event.
+* The test event was classified as **Legitimate**.
+* Reported fraud probability: **0.000799**.
+* Classification threshold: **0.5**.
+* Kafka offset was successfully committed.
+
+This Kafka result is from the synthetic integration-test event; it should not be interpreted as a measured fraud-detection accuracy result.
+
+### Deployment Verification
+
+* Frontend is deployed on Vercel.
+* Backend is deployed on Render.
+* FastAPI interactive documentation is available through the deployed API's Swagger UI.
 
 ## 🔮 Future Improvements
 

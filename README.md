@@ -1,68 +1,187 @@
-# Financial Fraud Detection Platform
+# 💳 Financial Fraud Detection Platform
 
-An end-to-end machine learning platform for detecting potentially fraudulent financial transactions using a trained ML model, FastAPI, real-time event processing, and automated testing.
+An end-to-end Machine Learning platform designed to detect potentially fraudulent credit card transactions using data processing, machine learning, and real-time transaction-processing technologies.
 
-## 🚀 Live Application
+The platform provides a web interface for submitting transaction details and viewing fraud predictions through a FastAPI backend.
 
-* **Frontend:** https://financial-fraud-detection-nu.vercel.app
-* **Backend API:** https://financial-fraud-detection-tf41.onrender.com
-* **API Documentation:** https://financial-fraud-detection-tf41.onrender.com/docs
+## 🌐 Live Demo
+
+| Component            | Link                                                     |
+| -------------------- | -------------------------------------------------------- |
+| Frontend Application | https://financial-fraud-detection-nu.vercel.app          |
+| Backend API          | https://financial-fraud-detection-tf41.onrender.com      |
+| API Documentation    | https://financial-fraud-detection-tf41.onrender.com/docs |
+| GitHub Repository    | https://github.com/Mymudh/financial-fraud-detection      |
 
 ## 📌 Project Overview
 
-The Financial Fraud Detection Platform analyzes transaction features and predicts whether a transaction may be fraudulent. It combines machine learning with a REST API and a web interface to make fraud prediction accessible through an interactive application.
+Credit card fraud is a major challenge in digital financial transactions. Detecting fraudulent activities accurately and quickly can help reduce financial losses and improve transaction security.
 
-The project also includes Kafka-based transaction event processing, feature-store integration, model evaluation, and automated tests.
+This project implements a machine learning-based fraud detection platform that analyzes transaction features and predicts whether a transaction is potentially legitimate or fraudulent.
+
+The application combines a React frontend, FastAPI backend, and machine learning model. It also includes components for event processing, feature management, model evaluation, and automated testing.
 
 ## ✨ Key Features
 
-* Machine learning-based fraud prediction
-* Interactive web interface for submitting transaction data
-* FastAPI backend with REST endpoints
-* Automatic API documentation using Swagger UI
-* Kafka transaction producer and consumer components
-* Feature-store integration using Feast
-* Model evaluation and saved model artifacts
-* Automated testing with pytest
-* GitHub Actions continuous integration
-* Frontend deployment through Vercel
-* Backend deployment through Render
+* **Fraud Detection:** Predicts potentially fraudulent credit card transactions.
+* **Machine Learning:** Uses a trained ML model for transaction classification.
+* **Interactive Dashboard:** Provides a frontend for submitting transactions and viewing results.
+* **REST API:** Exposes prediction functionality through FastAPI.
+* **API Documentation:** Provides interactive API documentation using Swagger UI.
+* **Feature Engineering:** Prepares transaction features for model prediction.
+* **Kafka Integration:** Supports event-based transaction processing.
+* **Feature Store:** Uses Feast for feature management.
+* **Model Evaluation:** Includes model evaluation and performance metrics.
+* **Automated Testing:** Uses GitHub Actions for continuous integration.
+
+## 🏗️ System Architecture
+
+The following diagram illustrates the main components and their interactions.
+
+```mermaid
+flowchart TD
+    A[User] --> B[React Frontend]
+    B --> C[FastAPI Backend]
+    C --> D[Input Validation]
+    D --> E[Feature Processing]
+    E --> F[Machine Learning Model]
+    F --> G[Fraud Prediction]
+    G --> C
+    C --> B
+    B --> H[Prediction Result]
+
+    E <--> I[Feast Feature Store]
+
+    C --> J[Transaction Database]
+
+    C --> K[Kafka Producer]
+    K --> L[Kafka Broker]
+    L --> M[Kafka Consumer]
+
+    N[Credit Card Dataset] --> O[Data Processing]
+    O --> P[Model Training]
+    P --> F
+    P --> Q[Model Evaluation]
+```
+
+### Architecture Components
+
+| Component              | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| React Frontend         | Provides the user interface and displays prediction results. |
+| FastAPI Backend        | Handles API requests and prediction operations.              |
+| Input Validation       | Checks incoming transaction data.                            |
+| Feature Processing     | Prepares transaction features for the model.                 |
+| Machine Learning Model | Classifies transactions for fraud detection.                 |
+| Feast Feature Store    | Supports feature management.                                 |
+| Kafka                  | Supports event-based transaction processing.                 |
+| Transaction Database   | Supports transaction data storage.                           |
+| Model Evaluation       | Evaluates the trained model.                                 |
 
 ## 🛠️ Technology Stack
 
-**Programming:** Python, JavaScript
+### Programming Languages
 
-**Machine Learning:** Scikit-learn, PyTorch, XGBoost
+* Python
+* JavaScript
 
-**Backend:** FastAPI, Uvicorn
+### Machine Learning
 
-**Frontend:** React, Vite
+* Scikit-learn
+* Pandas
+* NumPy
+* Machine Learning Classification
+* Feature Engineering
+* Model Evaluation
 
-**Streaming:** Apache Kafka, kafka-python
+### Backend
 
-**Feature Store:** Feast
+* FastAPI
+* Uvicorn
+* REST APIs
 
-**Data Processing:** Pandas, NumPy, PyArrow
+### Frontend
 
-**Experiment Tracking:** MLflow
+* React.js
+* Vite
+* JavaScript
+* CSS
 
-**Testing:** Pytest, HTTPX
+### Data Engineering and MLOps
 
-**Deployment and DevOps:** GitHub Actions, Docker, Vercel, Render
+* Apache Kafka
+* Feast Feature Store
+* MLflow
 
-## 🏗️ Project Structure
+### Database and Storage
+
+* SQLite
+* CSV
+
+### DevOps and Deployment
+
+* Docker
+* Docker Compose
+* Git
+* GitHub
+* GitHub Actions
+* Vercel
+* Render
+
+## 📁 Project Directory Structure
 
 ```text
 financial-fraud-detection/
+│
 ├── .github/
 │   └── workflows/
+│       └── ci.yml
+│
 ├── artifacts/
+│   ├── fraud_model.joblib
+│   ├── evaluation_metrics.json
+│   └── features/
+│
 ├── backend/
+│   ├── main.py
+│   ├── transactions_db.py
+│   ├── test_health.py
+│   ├── test_gnn_prediction.py
+│   ├── test_kafka_consumer.py
+│   ├── test_kafka_prediction.py
+│   └── test_kafka_producer.py
+│
+├── datasets/
+│   └── sample_creditcard.csv
+│
 ├── feature_store/
+│   └── data/
+│
 ├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js
+│
 ├── k8s/
+│
 ├── ml/
+│   ├── train_model.py
+│   ├── train_gnn.py
+│   ├── evaluate_model.py
+│   ├── feature_engineering.py
+│   ├── explore_data.py
+│   ├── drift_monitor.py
+│   └── auto_retrain.py
+│
 ├── tests/
+│
+├── create_sample_dataset.py
 ├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
@@ -73,120 +192,231 @@ financial-fraud-detection/
 └── README.md
 ```
 
-## ⚙️ Run Locally
+*Note: This is a representative project structure. Some local files, generated artifacts, and configuration files may not be included in the GitHub repository.*
 
-### 1. Clone the repository
+## 📂 Dataset
+
+This project uses the **Credit Card Fraud Detection** dataset.
+
+**Original Dataset:**
+[Credit Card Fraud Detection – Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
+
+**Alternative Dataset Mirror:**
+[Credit Card Fraud Detection – Zenodo](https://zenodo.org/records/7395559)
+
+### Dataset Information
+
+| Attribute               | Details |
+| ----------------------- | ------- |
+| Total Transactions      | 284,807 |
+| Normal Transactions     | 284,315 |
+| Fraudulent Transactions | 492     |
+| Total Columns           | 31      |
+| Target Column           | `Class` |
+| Fraud Class             | 1       |
+| Normal Class            | 0       |
+
+### Dataset Included in This Repository
+
+The repository includes:
+
+```text
+datasets/
+└── sample_creditcard.csv
+```
+
+The sample dataset contains:
+
+* 2,000 normal transactions
+* 492 fraudulent transactions
+* 2,492 total transactions
+
+The original dataset is approximately 143.84 MB locally and is excluded from GitHub because it exceeds GitHub's standard 100 MB file limit.
+
+### Generate the Sample Dataset Locally
+
+If you have downloaded the original `creditcard.csv`, place it inside the `datasets/` folder.
+
+Run:
+
+```bash
+python create_sample_dataset.py
+```
+
+This generates:
+
+```text
+datasets/sample_creditcard.csv
+```
+
+## ⚙️ Installation and Setup
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Mymudh/financial-fraud-detection.git
+```
+
+### 2. Navigate to the Project
+
+```bash
 cd financial-fraud-detection
 ```
 
-### 2. Create a virtual environment
+### 3. Create a Virtual Environment
 
 ```bash
-python -m venv .venv
+python -m venv venv
 ```
 
 Activate it on Windows:
 
 ```powershell
-.venv\Scripts\Activate.ps1
+venv\Scripts\activate
 ```
 
-### 3. Install dependencies
+### 4. Install Python Dependencies
 
 ```bash
-python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Start the backend
-
-Check the backend entry point and required environment variables in the repository, then start the FastAPI application using the appropriate module.
-
-For example, if `backend/main.py` exposes the FastAPI instance as `app`:
+### 5. Start the Backend
 
 ```bash
 uvicorn backend.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` to explore the API.
+Backend:
 
-### 5. Start the frontend
+```text
+http://127.0.0.1:8000
+```
+
+API Documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### 6. Start the Frontend
+
+Open another terminal:
 
 ```bash
 cd frontend
+```
+
+Install dependencies:
+
+```bash
 npm install
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-Configure the frontend's `VITE_API_URL` environment variable to point to your backend URL.
+Open the local frontend URL displayed in your terminal.
 
-## 🔄 Transaction Event Processing
+## 🔌 API Documentation
 
-The project includes Kafka producer and consumer components for transaction-event processing.
+The backend provides REST API endpoints through FastAPI.
 
-Publish a transaction using the producer's supported command-line options:
+**Live API Documentation:**
 
-```bash
-python -m backend.kafka_producer --help
-```
+https://financial-fraud-detection-tf41.onrender.com/docs
 
-Run the consumer using the documented configuration and an available Kafka broker:
+You can use the interactive Swagger interface to inspect and test the available API endpoints.
 
-```bash
-python -m backend.kafka_consumer
-```
+## 🧪 Testing and Continuous Integration
 
-Kafka must be configured and running before testing event processing.
+The project includes automated testing and a GitHub Actions workflow.
 
-## 🧪 Automated Testing
+The CI workflow helps validate project changes and run automated tests.
 
-Run the test suite from the project root:
+**GitHub Actions:**
 
-```bash
-python -m pytest
-```
+https://github.com/Mymudh/financial-fraud-detection/actions
 
-To run the Kafka producer tests:
+## 🚀 Deployment
 
-```bash
-python -m pytest backend/test_kafka_prediction.py -v
-```
+The application is deployed using separate frontend and backend services.
 
-Use the test file names present in the repository if they differ.
+| Service     | Platform       |
+| ----------- | -------------- |
+| Frontend    | Vercel         |
+| Backend     | Render         |
+| Source Code | GitHub         |
+| CI/CD       | GitHub Actions |
 
-The project includes automated checks for API behavior, prediction functionality, transaction processing, and feature-store functionality.
+### Deployment Links
+
+* Frontend: https://financial-fraud-detection-nu.vercel.app
+* Backend: https://financial-fraud-detection-tf41.onrender.com
+* API Documentation: https://financial-fraud-detection-tf41.onrender.com/docs
 
 ## 📊 Model Evaluation
 
-The machine learning pipeline includes model training and evaluation components. Evaluation metrics and trained model artifacts are stored in the repository's `artifacts/` directory.
+The project includes model training and evaluation scripts.
 
-Model performance depends on the dataset, feature definitions, preprocessing, and evaluation methodology. Predictions should be validated against representative transaction data before practical use.
+```text
+ml/
+├── train_model.py
+├── train_gnn.py
+├── evaluate_model.py
+└── feature_engineering.py
+```
 
-## 🔐 Security and Limitations
+Evaluation metrics are stored in:
 
-* Do not commit API keys, passwords, or private environment variables.
-* Validate transaction inputs before prediction.
-* Use appropriate authentication and access controls before production use.
-* Treat model predictions as decision-support signals rather than definitive proof of fraud.
-* Test the system with representative data and monitor false positives and false negatives.
+```text
+artifacts/evaluation_metrics.json
+```
+
+Important evaluation metrics for fraud detection include:
+
+* Accuracy
+* Precision
+* Recall
+* F1-Score
+* Confusion Matrix
+* ROC-AUC Score
+
+Because fraud datasets are highly imbalanced, precision, recall, and F1-score should be considered alongside accuracy.
+
+## 🔐 Security and Data Handling
+
+* Validate incoming transaction data.
+* Avoid exposing API keys and credentials.
+* Keep sensitive configuration in environment variables.
+* Exclude large datasets and generated artifacts from GitHub.
+* Use appropriate input validation before model prediction.
 
 ## 🔮 Future Improvements
 
-* Real-time fraud monitoring dashboard
-* Explainable AI for transaction-level predictions
-* Model drift detection and retraining
-* Improved transaction investigation workflows
-* Performance monitoring and production observability
+* Advanced fraud detection models.
+* Improved real-time transaction processing.
+* Enhanced fraud monitoring dashboard.
+* Explainable AI for prediction interpretation.
+* Model drift detection and automated retraining.
+* Advanced feature engineering.
+* Improved model performance and evaluation.
+* Scalable deployment architecture.
 
 ## 👨‍💻 Author
 
 **Shaik Maimood**
 
-GitHub: https://github.com/Mymudh
+AI/ML Engineer | Machine Learning | Deep Learning | Generative AI
 
-## 📄 License
+### Connect With Me
 
-Choose and add an appropriate open-source license before distributing the project for reuse.
+* GitHub: https://github.com/Mymudh
+* Project Repository: https://github.com/Mymudh/financial-fraud-detection
+
+---
+
+⭐ If you find this project useful, consider giving the repository a star!

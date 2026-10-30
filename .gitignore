@@ -1,6 +1,8 @@
-
 # Generated model and dataset files
-datasets/
+!datasets/
+datasets/*
+!datasets/sample_creditcard.csv
+
 mlruns/
 feature_store/data/*.db
 feature_store/data/*.parquet
@@ -11,7 +13,7 @@ artifacts/*.pkl
 __pycache__/
 *.py[cod]
 mlflow.db
-mlruns/
 frontend/node_modules/
+
 artifacts/features/engineered_features.csv
 artifacts/features/engineered_features.parquet

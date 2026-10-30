@@ -20,6 +20,7 @@ from backend.transactions_db import (
     get_transaction_history,
 )
 
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = PROJECT_ROOT / "artifacts" / "fraud_model.joblib"
 
@@ -72,6 +73,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.state.model_loaded = False
+app.state.database_ready = False
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -117,8 +122,17 @@ def home():
 
 @app.get("/health")
 def health_check(request: Request):
-    model_loaded = request.app.state.model_loaded
-    database_ready = request.app.state.database_ready
+    model_loaded = getattr(
+        request.app.state,
+        "model_loaded",
+        False,
+    )
+
+    database_ready = getattr(
+        request.app.state,
+        "database_ready",
+        False,
+    )
 
     status = (
         "healthy"

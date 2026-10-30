@@ -16,6 +16,5 @@ torch-geometric==2.6.1
 feast
 kafka-python
 pyarrow
-scikit-learn
 psycopg[binary]
 httpx

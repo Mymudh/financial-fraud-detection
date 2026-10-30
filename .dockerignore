@@ -1,11 +1,51 @@
-.venv
-__pycache__
-.pytest_cache
-.git
-.idea
-node_modules
-frontend/node_modules
-datasets
-*.pyc
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Git and IDE
+.git/
+.github/
+.idea/
+.vscode/
+
+# Node dependencies and build files
+node_modules/
+**/node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Datasets
+datasets/
+
+# Environment and secrets
 .env
-mlruns
+.env.*
+!.env.example
+
+# MLflow tracking
+mlruns/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db

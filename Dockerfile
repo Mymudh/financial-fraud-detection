@@ -9,14 +9,27 @@ ENV PIP_DEFAULT_TIMEOUT=300
 
 COPY requirements.txt .
 
-RUN python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu && \
-    python -m pip install --no-cache-dir --retries 10 --timeout 300 -r requirements.txt
+RUN python -m pip install --upgrade pip
+
+RUN python -m pip install --no-cache-dir \
+    torch==2.6.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+RUN python -m pip install --no-cache-dir \
+    --retries 10 \
+    --timeout 300 \
+    --prefer-binary \
+    -r requirements.txt
 
 COPY backend ./backend
 COPY ml ./ml
 COPY artifacts ./artifacts
 COPY feature_store ./feature_store
+
+RUN useradd --system --create-home --shell /usr/sbin/nologin appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8000
 

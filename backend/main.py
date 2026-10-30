@@ -4,9 +4,9 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.case_management import router as case_management_router
 from backend.feature_service import get_transaction_features
@@ -34,12 +34,18 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.model_loaded = False
+    app.state.database_ready = False
 
     try:
         initialize_database()
+        app.state.database_ready = True
         logger.info("Transaction database initialized.")
 
-        if not MODEL_PATH.exists():
+    except Exception:
+        logger.exception("Database initialization failed.")
+
+    try:
+        if not MODEL_PATH.is_file():
             logger.error("Fraud model not found: %s", MODEL_PATH)
         else:
             joblib.load(MODEL_PATH)
@@ -47,20 +53,22 @@ async def lifespan(app: FastAPI):
             logger.info("Fraud detection model loaded successfully.")
 
     except Exception:
-        logger.exception("Application initialization failed.")
+        logger.exception("Model initialization failed.")
 
     yield
+
+    logger.info("Financial Fraud Detection API shutting down.")
 
 
 app = FastAPI(
     title="Financial Fraud Detection API",
     description=(
-        "Real-time financial fraud detection using machine learning, "
+        "Financial fraud detection using machine learning, "
         "feature retrieval, Kafka transaction streaming, "
-        "GNN inference, SQLite transaction history, "
+        "GNN inference, transaction history, "
         "and analyst case management."
     ),
-    version="1.6.0",
+    version="1.7.0",
     lifespan=lifespan,
 )
 
@@ -71,6 +79,7 @@ app.add_middleware(
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
+        "https://financial-fraud-detection-nu.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -90,7 +99,7 @@ class PredictionResponse(BaseModel):
 
 class GNNPredictionRequest(BaseModel):
     features: list[list[float]]
-    edges: list[list[int]] = []
+    edges: list[list[int]] = Field(default_factory=list)
     node_index: int = 0
 
 
@@ -98,7 +107,8 @@ class GNNPredictionRequest(BaseModel):
 def home():
     return {
         "message": "Financial Fraud Detection API is running",
-        "version": "1.6.0",
+        "version": "1.7.0",
+        "status": "online",
         "docs": "/docs",
         "health": "/health",
         "transaction_history": "/transactions/history",
@@ -106,41 +116,37 @@ def home():
 
 
 @app.get("/health")
-def health_check():
-    if not MODEL_PATH.exists():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "status": "degraded",
-                "model_loaded": False,
-                "message": "Fraud model file not found.",
-            },
-        )
+def health_check(request: Request):
+    model_loaded = request.app.state.model_loaded
+    database_ready = request.app.state.database_ready
 
-    try:
-        joblib.load(MODEL_PATH)
+    status = (
+        "healthy"
+        if model_loaded and database_ready
+        else "degraded"
+    )
 
-        return {
-            "status": "healthy",
-            "model_loaded": True,
-            "message": "Fraud detection model is available.",
-        }
-
-    except Exception as exc:
-        logger.exception("Model health check failed.")
-
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "status": "degraded",
-                "model_loaded": False,
-                "message": "Fraud model could not be loaded.",
-            },
-        ) from exc
+    return {
+        "status": status,
+        "api_online": True,
+        "model_loaded": model_loaded,
+        "database_ready": database_ready,
+        "message": (
+            "Financial Fraud Detection API is operational."
+            if status == "healthy"
+            else "One or more backend components are unavailable."
+        ),
+    }
 
 
 @app.get("/features/{transaction_id}")
 def get_features(transaction_id: int):
+    if transaction_id <= 0:
+        raise HTTPException(
+            status_code=422,
+            detail="Transaction ID must be positive.",
+        )
+
     try:
         features = get_transaction_features(transaction_id)
 
@@ -160,7 +166,7 @@ def get_features(transaction_id: int):
 
         raise HTTPException(
             status_code=500,
-            detail="Feature retrieval failed. Check the server logs.",
+            detail="Feature retrieval failed. Check server logs.",
         ) from exc
 
 
@@ -168,12 +174,15 @@ def get_features(transaction_id: int):
 def predict(data: TransactionInput):
     try:
         transaction_data = data.model_dump()
+
         result = predict_transaction(transaction_data)
 
         response_data = {
             "prediction": int(result["prediction"]),
             "label": str(result["label"]),
-            "fraud_probability": float(result["fraud_probability"]),
+            "fraud_probability": float(
+                result["fraud_probability"]
+            ),
             "threshold": float(result["threshold"]),
         }
 
@@ -204,7 +213,7 @@ def predict(data: TransactionInput):
 
         raise HTTPException(
             status_code=500,
-            detail="Prediction failed. Check the server logs.",
+            detail="Prediction failed. Check server logs.",
         ) from exc
 
 
@@ -225,7 +234,9 @@ def transaction_history(limit: int = 100):
         }
 
     except Exception as exc:
-        logger.exception("Transaction history retrieval failed.")
+        logger.exception(
+            "Transaction history retrieval failed."
+        )
 
         raise HTTPException(
             status_code=500,
@@ -238,6 +249,12 @@ def predict_with_features(
     transaction_id: int,
     data: TransactionInput,
 ):
+    if transaction_id <= 0:
+        raise HTTPException(
+            status_code=422,
+            detail="Transaction ID must be positive.",
+        )
+
     try:
         features = get_transaction_features(transaction_id)
         transaction_data = data.model_dump()
@@ -261,7 +278,9 @@ def predict_with_features(
         saved_result = {
             "prediction": int(result["prediction"]),
             "label": str(result["label"]),
-            "fraud_probability": float(result["fraud_probability"]),
+            "fraud_probability": float(
+                result["fraud_probability"]
+            ),
             "threshold": float(result["threshold"]),
         }
 
@@ -284,11 +303,13 @@ def predict_with_features(
         ) from exc
 
     except Exception as exc:
-        logger.exception("Prediction with retrieved features failed.")
+        logger.exception(
+            "Prediction with retrieved features failed."
+        )
 
         raise HTTPException(
             status_code=500,
-            detail="Prediction failed. Check the server logs.",
+            detail="Prediction failed. Check server logs.",
         ) from exc
 
 
@@ -296,6 +317,7 @@ def predict_with_features(
 def stream_transaction(data: TransactionInput):
     try:
         transaction = data.model_dump()
+
         result = publish_transaction(transaction)
 
         return {
@@ -320,7 +342,7 @@ def stream_transaction(data: TransactionInput):
 
         raise HTTPException(
             status_code=500,
-            detail="Transaction streaming failed. Check the server logs.",
+            detail="Transaction streaming failed. Check server logs.",
         ) from exc
 
 
@@ -334,7 +356,7 @@ def gnn_health():
 
         raise HTTPException(
             status_code=500,
-            detail="GNN health check failed. Check the server logs.",
+            detail="GNN health check failed. Check server logs.",
         ) from exc
 
 
@@ -363,7 +385,11 @@ def gnn_predict(request: GNNPredictionRequest):
                 "Node features must contain finite numbers."
             )
 
-        if not isinstance(node_index, int) or not 0 <= node_index < len(x):
+        if (
+            isinstance(node_index, bool)
+            or not isinstance(node_index, int)
+            or not 0 <= node_index < len(x)
+        ):
             raise ValueError(
                 "node_index must refer to an existing node."
             )
@@ -416,5 +442,5 @@ def gnn_predict(request: GNNPredictionRequest):
 
         raise HTTPException(
             status_code=500,
-            detail="GNN prediction failed. Check the server logs.",
+            detail="GNN prediction failed. Check server logs.",
         ) from exc
